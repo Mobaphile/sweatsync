@@ -24,7 +24,7 @@ router.get('/plan', authenticateToken, async (req, res) => {
 router.get('/today', authenticateToken, async (req, res) => {
   try {
     const today = new Date();
-    const dayName = today.toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const dayName = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     
     const planPath = path.join(__dirname, '../workout-plans/current-plan.json');
     const planData = await fs.readFile(planPath, 'utf8');
