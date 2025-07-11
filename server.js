@@ -5,7 +5,7 @@ const authRoutes = require('./server/routes/auth');
 const workoutRoutes = require('./server/routes/workouts');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
