@@ -1,0 +1,215 @@
+{
+    "name": "Week 1 - Push/Pull/Legs",
+    "schedule": {
+      "monday": {
+        "name": "Push Day",
+        "exercises": [
+          {
+            "name": "Bench Press",
+            "sets": 3,
+            "target_reps": "8-12",
+            "type": "reps",
+            "notes": "Focus on controlled movement"
+          },
+          {
+            "name": "Overhead Press",
+            "sets": 3,
+            "target_reps": "8-10",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Dumbbell Flyes",
+            "sets": 3,
+            "target_reps": "12-15",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Tricep Dips",
+            "sets": 3,
+            "target_reps": "10-12",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Plank",
+            "sets": 3,
+            "target_time": "60s",
+            "type": "time",
+            "notes": "Hold steady"
+          }
+        ]
+      },
+      "tuesday": {
+        "name": "Pull Day",
+        "exercises": [
+          {
+            "name": "Pull-ups",
+            "sets": 3,
+            "target_reps": "5-8",
+            "type": "reps",
+            "notes": "Use assistance if needed"
+          },
+          {
+            "name": "Bent-over Rows",
+            "sets": 3,
+            "target_reps": "8-12",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Lat Pulldowns",
+            "sets": 3,
+            "target_reps": "10-12",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Bicep Curls",
+            "sets": 3,
+            "target_reps": "12-15",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Face Pulls",
+            "sets": 3,
+            "target_reps": "15-20",
+            "type": "reps",
+            "notes": "Focus on rear delts"
+          }
+        ]
+      },
+      "wednesday": {
+        "name": "Rest Day",
+        "exercises": [
+          {
+            "name": "Light Walk",
+            "sets": 1,
+            "target_time": "20-30 minutes",
+            "type": "time",
+            "notes": "Active recovery"
+          }
+        ]
+      },
+      "thursday": {
+        "name": "Legs Day",
+        "exercises": [
+          {
+            "name": "Squats",
+            "sets": 3,
+            "target_reps": "8-12",
+            "type": "reps",
+            "notes": "Go deep"
+          },
+          {
+            "name": "Romanian Deadlifts",
+            "sets": 3,
+            "target_reps": "10-12",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Lunges",
+            "sets": 3,
+            "target_reps": "12 each leg",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Calf Raises",
+            "sets": 3,
+            "target_reps": "15-20",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Wall Sit",
+            "sets": 3,
+            "target_time": "45s",
+            "type": "time",
+            "notes": "Hold position"
+          }
+        ]
+      },
+      "friday": {
+        "name": "Upper Body",
+        "exercises": [
+          {
+            "name": "Push-ups",
+            "sets": 3,
+            "target_reps": "10-15",
+            "type": "reps",
+            "notes": "Modify as needed"
+          },
+          {
+            "name": "Dumbbell Rows",
+            "sets": 3,
+            "target_reps": "12-15",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Shoulder Press",
+            "sets": 3,
+            "target_reps": "10-12",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Arm Circles",
+            "sets": 2,
+            "target_reps": "20 each direction",
+            "type": "reps",
+            "notes": "Light weight"
+          }
+        ]
+      },
+      "saturday": {
+        "name": "Full Body",
+        "exercises": [
+          {
+            "name": "Burpees",
+            "sets": 3,
+            "target_reps": "5-8",
+            "type": "reps",
+            "notes": "Take breaks as needed"
+          },
+          {
+            "name": "Mountain Climbers",
+            "sets": 3,
+            "target_time": "30s",
+            "type": "time",
+            "notes": ""
+          },
+          {
+            "name": "Jumping Jacks",
+            "sets": 3,
+            "target_reps": "20",
+            "type": "reps",
+            "notes": ""
+          },
+          {
+            "name": "Plank to Push-up",
+            "sets": 2,
+            "target_reps": "8-10",
+            "type": "reps",
+            "notes": ""
+          }
+        ]
+      },
+      "sunday": {
+        "name": "Rest Day",
+        "exercises": [
+          {
+            "name": "Stretching",
+            "sets": 1,
+            "target_time": "15-20 minutes",
+            "type": "time",
+            "notes": "Focus on tight areas"
+          }
+        ]
+      }
+    }
+  }
