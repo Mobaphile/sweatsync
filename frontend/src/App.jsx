@@ -11,7 +11,7 @@ import { User, Calendar, Trophy, Plus, LogOut, Dumbbell, Clock, Target } from 'l
 // ==============================================
 
 // Base URL for your backend API server
-const API_BASE_URL = 'http://10.0.0.162:3000/api';
+const API_BASE_URL = '/api';
 
 // API service object - contains all functions for communicating with backend
 const api = {
