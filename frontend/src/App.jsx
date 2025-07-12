@@ -365,7 +365,7 @@ const App = () => {
       setLoading(true);
       const history = await api.getWorkoutHistory();
       console.log('Received history data:', history); // Debug log
-      setWorkoutHistory(history);
+      setWorkoutHistory(history.workouts || []);
     } catch (error) {
       console.error('Failed to load history:', error);
     } finally {
