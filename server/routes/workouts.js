@@ -54,6 +54,14 @@ router.post('/complete', authenticateToken, async (req, res) => {
   try {
     const { date, workout, exercises } = req.body;
     
+    console.log('📋 Workout data received:', {
+      user: req.user.username,
+      date: date,
+      workoutName: workout?.name,
+      exerciseCount: exercises?.length,
+      timestamp: new Date().toISOString()
+    });
+    
     if (!date || !workout || !exercises) {
       return res.status(400).json({ error: 'Date, workout, and exercises are required' });
     }
