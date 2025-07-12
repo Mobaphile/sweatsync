@@ -18,13 +18,12 @@ This isn't about social features or competing with strangers on the internet. It
 ### Currently Working
 - ✅ User authentication (secure login for you and your partner)
 - ✅ Daily workout tracking with sets, reps, and weights
-- ✅ JSON workout plan upload
 - ✅ Basic workout history
 - ✅ Mobile-responsive design
 - ✅ Exercise notes for form cues or personal reminders
 
 ### Coming Soon
-See our [roadmap](#-roadmap) below for what's next!
+See my [roadmap](#-roadmap) below for what's next!
 
 ## 🛠️ Tech Stack
 
@@ -91,6 +90,7 @@ sweatsync/
 
 - [ ] **Fix time-based exercises** - Handle exercises measured in seconds (planks, wall sits, etc.)
 - [ ] **Delete workouts** - Add ability to remove workouts from history
+- [ ] **Upload JSON** - Add ability to upload a JSON workout
 - [ ] **Enhanced history page** - Show date/time and make workouts clickable for detailed view
 - [ ] **Detailed workout view** - Click any past workout to see all sets, weights, and notes
 - [ ] **Better error handling** - Clear messages when things go wrong
