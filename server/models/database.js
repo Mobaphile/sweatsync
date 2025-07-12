@@ -105,6 +105,44 @@ class Database {
     });
   }
 
+  deleteWorkout(workoutId, userId) {
+    return new Promise((resolve, reject) => {
+      // First, verify that the workout belongs to the user
+      this.db.get(
+        'SELECT id FROM workouts WHERE id = ? AND user_id = ?',
+        [workoutId, userId],
+        (err, row) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          
+          if (!row) {
+            reject(new Error('Workout not found or access denied'));
+            return;
+          }
+          
+          // If workout exists and belongs to user, delete it
+          this.db.run(
+            'DELETE FROM workouts WHERE id = ? AND user_id = ?',
+            [workoutId, userId],
+            function(err) {
+              if (err) {
+                reject(err);
+              } else {
+                resolve({ 
+                  deleted: true, 
+                  workoutId: workoutId,
+                  changesCount: this.changes 
+                });
+              }
+            }
+          );
+        }
+      );
+    });
+  }
+
   getWorkoutsByUser(userId, limit = 10) {
     return new Promise((resolve, reject) => {
       this.db.all(
