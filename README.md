@@ -88,7 +88,7 @@ sweatsync/
 ### Phase 1: Core Improvements (Current Focus)
 **Goal**: Fix the annoying stuff and make daily use smoother
 
-- [ ] **Fix time-based exercises** - Handle exercises measured in seconds (planks, wall sits, etc.)
+- [x] **Fix time-based exercises** - Handle exercises measured in seconds (planks, wall sits, etc.)
 - [ ] **Delete workouts** - Add ability to remove workouts from history
 - [ ] **Upload JSON** - Add ability to upload a JSON workout
 - [ ] **Enhanced history page** - Show date/time and make workouts clickable for detailed view

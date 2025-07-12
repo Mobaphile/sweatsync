@@ -254,7 +254,9 @@ const ExerciseTracker = ({ exercise, onUpdate }) => {
     <div className="bg-white rounded-lg shadow-md p-6 mb-4">
       {/* Exercise header */}
       <h3 className="text-lg font-semibold text-gray-800 mb-2">{exercise.name}</h3>
-      <p className="text-gray-600 mb-4">Target: {exercise.target_reps} reps × {exercise.sets} sets</p>
+      <p className="text-gray-600 mb-4">
+        Target: {exercise.type === 'time' ? exercise.target_time : exercise.target_reps + ' reps'} × {exercise.sets} sets
+      </p>
       
       {/* Sets tracking */}
       <div className="space-y-3">
