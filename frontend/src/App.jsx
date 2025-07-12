@@ -64,6 +64,16 @@ const api = {
     return data;
   },
 
+  // GET FULL WORKOUT PLAN
+  getWeeklyWorkouts: async () => {
+  const response = await fetch(`${API_BASE_URL}/workouts/plan`, {
+    headers: api.getAuthHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Failed to fetch weekly workouts');
+  return data;
+},
+
   // COMPLETE WORKOUT - saves completed workout data to backend
   completeWorkout: async (workoutData) => {
     const response = await fetch(`${API_BASE_URL}/workouts/complete`, {
@@ -320,9 +330,11 @@ const App = () => {
   const [isLogin, setIsLogin] = useState(true); // Whether login form shows login or register
   const [currentView, setCurrentView] = useState('today'); // Current page ('today' or 'history')
   const [todaysWorkout, setTodaysWorkout] = useState(null); // Today's workout data
+  const [workoutPlan, setWorkoutPlan] = useState([]); // Full workout plan
   const [workoutHistory, setWorkoutHistory] = useState([]); // Array of past workouts
   const [exerciseData, setExerciseData] = useState({}); // Current workout progress data
   const [loading, setLoading] = useState(false); // Global loading state
+
 
   // useEffect hook - runs side effects when component mounts or dependencies change
   // This effect runs once when the app starts (empty dependency array [])
@@ -342,6 +354,9 @@ const App = () => {
     if (user && currentView === 'today') {
       loadTodaysWorkout();
     }
+    if (user && currentView === 'weekly') {
+      loadWorkoutPlan();
+}
   }, [user, currentView]); // Dependencies: runs when user or currentView changes
 
   // Function to load today's workout from the API
@@ -358,6 +373,20 @@ const App = () => {
       setLoading(false); // Hide loading indicator regardless of success/failure
     }
   };
+
+  // Function to load workout plan from API
+  const loadWorkoutPlan = async () => {
+  try {
+    setLoading(true);
+    const week = await api.getWeeklyWorkouts();
+    setWorkoutPlan(week.workouts || []);
+  } catch (error) {
+    console.error('Failed to load weekly workouts:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Function to load workout history from the API
   const loadWorkoutHistory = async () => {
@@ -497,6 +526,21 @@ const App = () => {
             >
               <Calendar className="inline mr-2" size={16} />
               Today's Workout
+            </button>
+            {/* Weekly View tab */}
+            <button
+              onClick={() => {
+                setCurrentView('weekly');
+                loadWorkoutPlan();
+              }}
+              className={`py-4 px-2 border-b-2 font-medium text-sm ${
+                currentView === 'weekly'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Clock className="inline mr-2" size={16} />
+              Workout Plan
             </button>
             {/* History tab */}
             <button
@@ -657,6 +701,53 @@ const App = () => {
             )}
           </div>
         )}
+        {currentView === 'weekly' && (
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">This Week's Plan</h2>
+
+            {loading && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading weekly plan...</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {workoutPlan.map((day, index) => (
+                <details key={index} className="bg-white rounded-lg shadow-md p-6">
+                  <summary className="cursor-pointer text-lg font-semibold text-gray-800">
+                    {day.date} - {day.workout?.name || 'Unnamed Workout'}
+                  </summary>
+                  <div className="mt-4 space-y-2">
+                    {day.workout?.exercises?.map((exercise, i) => (
+                      <div key={i} className="border border-gray-200 rounded p-3">
+                        <h4 className="font-medium text-gray-800">{exercise.name}</h4>
+                        <p className="text-sm text-gray-600">
+                          {exercise.sets} sets × {exercise.target_reps} reps
+                        </p>
+                      </div>
+                    ))}
+                    {!day.workout?.exercises?.length && (
+                      <p className="text-sm text-gray-500">No exercises planned.</p>
+                    )}
+                  </div>
+                </details>
+              ))}
+            </div>
+
+            {workoutPlan.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <Clock className="mx-auto text-gray-400 mb-4" size={48} />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No workouts planned this week
+                </h3>
+                <p className="text-gray-600">
+                  Add a plan to start building your weekly schedule!
+                </p>
+              </div>
+            )}
+          </div>
+        )}      
       </main>
     </div>
   );
