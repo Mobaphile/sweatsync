@@ -100,4 +100,39 @@ router.get('/history', authenticateToken, async (req, res) => {
   }
 });
 
+// Delete a workout by ID
+router.post('/delete', authenticateToken, async (req, res) => {
+  try {
+    const { workoutId } = req.body;
+    const userId = req.user.id;
+    
+    // Validate that workout ID is provided and is a number
+    if (!workoutId || isNaN(workoutId)) {
+      return res.status(400).json({ error: 'Valid workout ID is required' });
+    }
+    
+    // Delete the workout from database
+    const result = await database.deleteWorkout(parseInt(workoutId), userId);
+    
+    if (result.changesCount === 0) {
+      return res.status(404).json({ error: 'Workout not found or already deleted' });
+    }
+    
+    res.json({ 
+      message: 'Workout deleted successfully',
+      workoutId: result.workoutId 
+    });
+    
+  } catch (error) {
+    console.error('Error deleting workout:', error);
+    
+    // Handle specific error cases
+    if (error.message === 'Workout not found or access denied') {
+      return res.status(403).json({ error: 'Access denied or workout not found' });
+    }
+    
+    res.status(500).json({ error: 'Failed to delete workout' });
+  }
+});
+
 module.exports = router;
