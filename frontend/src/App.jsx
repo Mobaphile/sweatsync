@@ -375,17 +375,25 @@ const App = () => {
   };
 
   // Function to load workout plan from API
-  const loadWorkoutPlan = async () => {
+const loadWorkoutPlan = async () => {
   try {
     setLoading(true);
     const week = await api.getWeeklyWorkouts();
-    setWorkoutPlan(week.workouts || []);
+
+    // Transform schedule object to an array
+    const days = Object.entries(week.plan.schedule).map(([day, workout]) => ({
+      day, // "monday", "tuesday", etc.
+      workout,
+    }));
+
+    setWorkoutPlan(days);
   } catch (error) {
     console.error('Failed to load weekly workouts:', error);
   } finally {
     setLoading(false);
   }
 };
+
 
 
   // Function to load workout history from the API
@@ -701,6 +709,7 @@ const App = () => {
             )}
           </div>
         )}
+        {/* WORKOUT PLAN VIEW */}
         {currentView === 'weekly' && (
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-8">This Week's Plan</h2>
@@ -713,21 +722,27 @@ const App = () => {
             )}
 
             <div className="space-y-4">
-              {workoutPlan.map((day, index) => (
+              {workoutPlan.map((entry, index) => (
                 <details key={index} className="bg-white rounded-lg shadow-md p-6">
                   <summary className="cursor-pointer text-lg font-semibold text-gray-800">
-                    {day.date} - {day.workout?.name || 'Unnamed Workout'}
+                    {entry.day.charAt(0).toUpperCase() + entry.day.slice(1)} - {entry.workout?.name || 'Unnamed Workout'}
                   </summary>
+
                   <div className="mt-4 space-y-2">
-                    {day.workout?.exercises?.map((exercise, i) => (
+                    {entry.workout?.exercises?.map((exercise, i) => (
                       <div key={i} className="border border-gray-200 rounded p-3">
                         <h4 className="font-medium text-gray-800">{exercise.name}</h4>
                         <p className="text-sm text-gray-600">
-                          {exercise.sets} sets × {exercise.target_reps} reps
+                          {exercise.type === 'time'
+                            ? `${exercise.sets} sets × ${exercise.target_time}`
+                            : `${exercise.sets} sets × ${exercise.target_reps} reps`}
                         </p>
+                        {exercise.notes && (
+                          <p className="text-sm italic text-gray-500">{exercise.notes}</p>
+                        )}
                       </div>
                     ))}
-                    {!day.workout?.exercises?.length && (
+                    {!entry.workout?.exercises?.length && (
                       <p className="text-sm text-gray-500">No exercises planned.</p>
                     )}
                   </div>
@@ -747,7 +762,8 @@ const App = () => {
               </div>
             )}
           </div>
-        )}      
+        )}
+      
       </main>
     </div>
   );
