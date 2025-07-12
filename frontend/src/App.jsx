@@ -401,7 +401,7 @@ const App = () => {
     // Prepare workout data in the format expected by the API
     const workoutData = {
       date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
-      workout: { name: todaysWorkout.name },
+      workout: { name: todaysWorkout.workout?.name || getWorkoutName(todaysWorkout) },
       exercises: Object.entries(exerciseData).map(([name, data]) => ({
         name,
         sets: data.sets || [],
@@ -437,6 +437,7 @@ const App = () => {
     if (!workout) return 'Unknown Workout';
     
     if (workout.name) return workout.name;
+    if (workout.workout_data && workout.workout_data.workoutName) return workout.workout_data.workoutName;
     if (workout.workout && workout.workout.name) return workout.workout.name;
     if (workout.data && workout.data.name) return workout.data.name;
     
