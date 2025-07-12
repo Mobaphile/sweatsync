@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Import icons from lucide-react icon library
-import { User, Calendar, Trophy, Plus, LogOut, Dumbbell, Clock, Target } from 'lucide-react';
+import { User, Calendar, Trophy, Plus, LogOut, Dumbbell, Clock, Target, Droplet} from 'lucide-react';
 
 // ==============================================
 // API CONFIGURATION & SERVICE LAYER
@@ -39,6 +39,16 @@ const api = {
     if (!response.ok) throw new Error(data.error || 'Login failed');
     
     // Return the data (usually contains token and user info)
+    return data;
+  },
+
+  // VALIDATE FUNCTION - validates stored token with backend
+  validateToken: async () => {
+    const response = await fetch(`${API_BASE_URL}/auth/validate`, {
+      headers: api.getAuthHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Token validation failed');
     return data;
   },
 
@@ -152,7 +162,7 @@ const LoginForm = ({ onLogin, isLogin, setIsLogin }) => {
         {/* Header section with logo and title */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Dumbbell className="text-blue-600 mr-2" size={32} />
+            <Droplet className="text-blue-600 mr-2" size={32} />
             <h1 className="text-3xl font-bold text-gray-800">SweatSync</h1>
           </div>
           <p className="text-gray-600">Track your fitness journey</p>
@@ -341,14 +351,23 @@ const App = () => {
   // useEffect hook - runs side effects when component mounts or dependencies change
   // This effect runs once when the app starts (empty dependency array [])
   useEffect(() => {
-    // Check if user was previously logged in by looking for auth token
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      // In a real app, you'd validate the token with your backend
-      // For now, we'll just assume it's valid and set a dummy user
-      setUser({ username: 'User' });
-    }
-  }, []); // Empty dependency array means this runs once on mount
+    const checkAuth = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return; // No token, stay logged out
+
+      try {
+        // Actually validate the token with your backend
+        const userData = await api.validateToken();
+        setUser(userData); // Set real user data from backend
+      } catch (error) {
+        console.error('Token validation failed:', error);
+        // Token is invalid/expired - clean up and stay logged out
+        localStorage.removeItem('authToken');
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   // This effect runs whenever user or currentView changes
   useEffect(() => {
@@ -503,7 +522,7 @@ const loadWorkoutPlan = async () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo and app name */}
             <div className="flex items-center">
-              <Dumbbell className="text-blue-600 mr-3" size={28} />
+              <Droplet className="text-blue-600 mr-3" size={28} />
               <h1 className="text-2xl font-bold text-gray-900">SweatSync</h1>
             </div>
             {/* User info and logout */}
@@ -534,7 +553,7 @@ const loadWorkoutPlan = async () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700' // Inactive tab styles
               }`}
             >
-              <Calendar className="inline mr-2" size={16} />
+              <Dumbbell className="inline mr-2" size={16} />
               Today's Workout
             </button>
             {/* Weekly View tab */}
@@ -564,7 +583,7 @@ const loadWorkoutPlan = async () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              <Trophy className="inline mr-2" size={16} />
+              <Calendar className="inline mr-2" size={16} />
               History
             </button>
           </div>
@@ -639,7 +658,7 @@ const loadWorkoutPlan = async () => {
             {/* Empty state - show when no workout or no exercises */}
             {(!todaysWorkout || getExercises(todaysWorkout).length === 0) && !loading && (
               <div className="text-center py-12">
-                <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
+                <Dumbbell className="mx-auto text-gray-400 mb-4" size={48} />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   No workout scheduled for today
                 </h3>
@@ -700,7 +719,7 @@ const loadWorkoutPlan = async () => {
             {/* Empty state for history */}
             {workoutHistory.length === 0 && !loading && (
               <div className="text-center py-12">
-                <Trophy className="mx-auto text-gray-400 mb-4" size={48} />
+                <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   No workouts completed yet
                 </h3>

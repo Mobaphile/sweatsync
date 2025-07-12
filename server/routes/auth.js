@@ -80,6 +80,15 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.get('/validate', authenticateToken, (req, res) => {
+  // If we get here, the token is valid (middleware verified it)
+  res.json({
+    id: req.user.id,
+    username: req.user.username,
+    // Don't send sensitive data like passwords
+  });
+});
+
 // Get current user info (protected route)
 router.get('/me', authenticateToken, (req, res) => {
   res.json({
