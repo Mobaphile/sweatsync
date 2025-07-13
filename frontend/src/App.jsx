@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Import icons from lucide-react icon library
-import { User, Calendar, Trophy, Plus, LogOut, Dumbbell, Clock, Target, Droplet, Trash2} from 'lucide-react';
+import { User, Calendar, Trophy, Plus, LogOut, Dumbbell, Clock, Target, Droplet, Trash2, Upload} from 'lucide-react';
 
 // ==============================================
 // API CONFIGURATION & SERVICE LAYER
@@ -83,6 +83,29 @@ const api = {
   if (!response.ok) throw new Error(data.error || 'Failed to fetch weekly workouts');
   return data;
 },
+
+  // UPLOAD NEW WORKOUT PLAN
+  uploadWorkoutPlan: async (name, planData) => {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch('/api/workouts/upload-plan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name,
+        planData
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload workout plan');
+    }
+
+    return response.json();
+  },
 
   // COMPLETE WORKOUT - saves completed workout data to backend
   completeWorkout: async (workoutData) => {
@@ -362,6 +385,7 @@ const App = () => {
   const [exerciseData, setExerciseData] = useState({}); // Current workout progress data
   const [loading, setLoading] = useState(false); // Global loading state
   const [deletingWorkoutId, setDeletingWorkoutId] = useState(null); // Track which workout is being deleted
+  const [uploadStatus, setUploadStatus] = useState('');// Track status of upload.
 
 
   // useEffect hook - runs side effects when component mounts or dependencies change
@@ -412,25 +436,95 @@ const App = () => {
   };
 
   // Function to load workout plan from API
-const loadWorkoutPlan = async () => {
-  try {
-    setLoading(true);
-    const week = await api.getWeeklyWorkouts();
+  const loadWorkoutPlan = async () => {
+    try {
+      setLoading(true);
+      const week = await api.getWeeklyWorkouts();
 
-    // Transform schedule object to an array
-    const days = Object.entries(week.plan.schedule).map(([day, workout]) => ({
-      day, // "monday", "tuesday", etc.
-      workout,
-    }));
+      // Transform schedule object to an array
+      const days = Object.entries(week.plan.schedule).map(([day, workout]) => ({
+        day, // "monday", "tuesday", etc.
+        workout,
+      }));
 
-    setWorkoutPlan(days);
-  } catch (error) {
-    console.error('Failed to load weekly workouts:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+      setWorkoutPlan(days);
+    } catch (error) {
+      console.error('Failed to load weekly workouts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+
+  // HANDLE WORKOUT PLAN UPLOAD
+  const handleWorkoutPlanUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.name.endsWith('.json')) {
+      setUploadStatus('Please select a JSON file');
+      return;
+    }
+    
+    try {
+      setUploadStatus('Uploading...');
+      
+      // Read the file
+      const fileContent = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+      
+      // Parse JSON
+      let planData;
+      try {
+        planData = JSON.parse(fileContent);
+      } catch (parseError) {
+        setUploadStatus('Invalid JSON file format');
+        return;
+      }
+      
+      // Validate required structure
+      if (!planData.name || !planData.schedule) {
+        setUploadStatus('Invalid workout plan format. Must include "name" and "schedule" fields.');
+        return;
+      }
+      
+      // Upload to backend
+      await api.uploadWorkoutPlan(planData.name, planData);
+      
+      setUploadStatus('Workout plan uploaded successfully!');
+      
+      // FORCE REFRESH OF DATA - This is the key addition
+      console.log('Upload successful, refreshing data...');
+      
+      // Reload the workout plan data (for weekly view)
+      if (typeof loadWorkoutPlan === 'function') {
+        await loadWorkoutPlan();
+      }
+      
+      // Reload today's workout (for today view) 
+      await loadTodaysWorkout();
+      
+      console.log('Data refreshed successfully');
+      
+      // Clear the file input
+      event.target.value = '';
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setUploadStatus(''), 3000);
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadStatus(`Upload failed: ${error.message}`);
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => setUploadStatus(''), 5000);
+    }
+  };
 
 
   // Function to load workout history from the API
