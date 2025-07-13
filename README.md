@@ -91,8 +91,8 @@ sweatsync/
 - [x] **Fix time-based exercises** - Handle exercises measured in seconds (planks, wall sits, etc.)
 - [x] **Delete workouts** - Add ability to remove workouts from history
 - [x] **Upload JSON** - Add ability to upload a JSON workout
-- [ ] **Enhanced history page** - Show date/time and make workouts clickable for detailed view
-- [ ] **Detailed workout view** - Click any past workout to see all sets, weights, and notes
+- [x] **Enhanced history page** - Show date/time and make workouts clickable for detailed view
+- [x] **Detailed workout view** - Click any past workout to see all sets, weights, and notes
 - [ ] **Better error handling** - Clear messages when things go wrong
 
 ### Phase 2: Production Deployment
