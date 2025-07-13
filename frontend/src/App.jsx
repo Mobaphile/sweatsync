@@ -886,16 +886,16 @@ const App = () => {
                 const exercises = workout.workout_data?.exercises || [];
                 
                 return (
-                  <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200">
                     {/* Clickable header section */}
                     <div 
-                      className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                      className="p-6 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
                       onClick={() => toggleWorkoutExpanded(workout.id)}
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            {/* Expand/collapse indicator */}
+                            {/* Simple expand/collapse indicator */}
                             <span className="text-gray-400 text-sm">
                               {isExpanded ? '▼' : '▶'}
                             </span>
@@ -907,17 +907,17 @@ const App = () => {
                         </div>
                         
                         <div className="text-right relative">
-                          {/* Delete button - stop propagation so it doesn't trigger expand */}
+                          {/* Delete button */}
                           <button
                             onClick={(e) => {
-                              e.stopPropagation(); // Prevent triggering the expand/collapse
+                              e.stopPropagation();
                               deleteWorkout(
                                 workout.id, 
                                 workout.workout_data?.workoutName || 'Unknown Workout'
                               );
                             }}          
                             disabled={deletingWorkoutId === workout.id}
-                            className="absolute top-0 right-0 p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="absolute top-0 right-0 p-1 text-gray-400 hover:text-red-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Delete workout"
                           >
                             {deletingWorkoutId === workout.id ? (
@@ -934,11 +934,11 @@ const App = () => {
                         </div>
                       </div>
                       
-                      {/* Collapsed view - exercise summary grid (only show when NOT expanded) */}
+                      {/* Collapsed view - exercise summary grid */}
                       {!isExpanded && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {exercises.map((exercise, exIndex) => (
-                            <div key={exIndex} className="bg-gray-50 rounded p-3">
+                            <div key={exIndex} className="bg-gray-50 rounded p-3 hover:shadow-md transition-shadow duration-200">
                               <h4 className="font-medium text-gray-800">{exercise.name}</h4>
                               <p className="text-sm text-gray-600">
                                 {exercise.sets?.length || 0} sets completed
@@ -953,19 +953,28 @@ const App = () => {
                     {isExpanded && (
                       <div className="border-t border-gray-200 bg-gray-50">
                         <div className="p-6">
-                          <h4 className="text-lg font-semibold text-gray-800 mb-4">Workout Details</h4>
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <span className="w-1 h-6 bg-blue-500 rounded"></span>
+                            Workout Details
+                          </h4>
                           
                           {exercises.length === 0 ? (
                             <p className="text-gray-500 italic">No exercises recorded for this workout.</p>
                           ) : (
                             <div className="space-y-6">
                               {exercises.map((exercise, exIndex) => (
-                                <div key={exIndex} className="bg-white rounded-lg p-4 shadow-sm">
-                                  <h5 className="font-semibold text-gray-800 mb-3">{exercise.name}</h5>
+                                <div 
+                                  key={exIndex} 
+                                  className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
+                                >
+                                  <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    {exercise.name}
+                                  </h5>
                                   
                                   {/* Exercise notes */}
                                   {exercise.notes && (
-                                    <div className="mb-3 p-3 bg-blue-50 rounded border-l-4 border-blue-200">
+                                    <div className="mb-3 p-3 bg-blue-50 rounded border-l-4 border-blue-200 hover:shadow-sm transition-shadow duration-200">
                                       <p className="text-sm text-gray-700">
                                         <span className="font-medium">Notes:</span> {exercise.notes}
                                       </p>
@@ -978,13 +987,16 @@ const App = () => {
                                       <p className="text-sm font-medium text-gray-600 mb-2">Sets:</p>
                                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                         {exercise.sets.map((set, setIndex) => (
-                                          <div key={setIndex} className="bg-gray-50 rounded px-3 py-2 text-sm">
-                                            <span className="font-medium">Set {setIndex + 1}:</span>
+                                          <div 
+                                            key={setIndex} 
+                                            className="bg-gray-50 rounded px-3 py-2 text-sm hover:shadow-sm transition-shadow duration-200"
+                                          >
+                                            <span className="font-medium text-blue-600">Set {setIndex + 1}:</span>
                                             {set.reps && (
                                               <span className="ml-1">{set.reps} reps</span>
                                             )}
                                             {set.weight && (
-                                              <span className="ml-1">@ {set.weight} lbs</span>
+                                              <span className="ml-1 font-semibold">@ {set.weight} lbs</span>
                                             )}
                                             {set.time && (
                                               <span className="ml-1">{set.time}s</span>
