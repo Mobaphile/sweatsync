@@ -894,55 +894,132 @@ const App = () => {
         {/* WORKOUT PLAN VIEW */}
         {currentView === 'weekly' && (
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">This Week's Plan</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">Workout Plan Management</h2>
 
-            {loading && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading weekly plan...</p>
+            {/* Upload Section - NEW */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                <Upload className="inline mr-2" size={20} />
+                Upload Custom Workout Plan
+              </h3>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select JSON Workout Plan File
+                </label>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleWorkoutPlanUpload}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
               </div>
-            )}
-
-            <div className="space-y-4">
-              {workoutPlan.map((entry, index) => (
-                <details key={index} className="bg-white rounded-lg shadow-md p-6">
-                  <summary className="cursor-pointer text-lg font-semibold text-gray-800">
-                    {entry.day.charAt(0).toUpperCase() + entry.day.slice(1)} - {entry.workout?.name || 'Unnamed Workout'}
-                  </summary>
-
-                  <div className="mt-4 space-y-2">
-                    {entry.workout?.exercises?.map((exercise, i) => (
-                      <div key={i} className="border border-gray-200 rounded p-3">
-                        <h4 className="font-medium text-gray-800">{exercise.name}</h4>
-                        <p className="text-sm text-gray-600">
-                          {exercise.type === 'time'
-                            ? `${exercise.sets} sets × ${exercise.target_time}`
-                            : `${exercise.sets} sets × ${exercise.target_reps} reps`}
-                        </p>
-                        {exercise.notes && (
-                          <p className="text-sm italic text-gray-500">{exercise.notes}</p>
-                        )}
-                      </div>
-                    ))}
-                    {!entry.workout?.exercises?.length && (
-                      <p className="text-sm text-gray-500">No exercises planned.</p>
-                    )}
-                  </div>
-                </details>
-              ))}
+              
+              {/* Upload Status */}
+              {uploadStatus && (
+                <div className={`p-3 rounded-md mb-4 ${
+                  uploadStatus.includes('successfully') || uploadStatus.includes('Uploading')
+                    ? 'bg-green-50 text-green-800 border border-green-200'
+                    : 'bg-red-50 text-red-800 border border-red-200'
+                }`}>
+                  {uploadStatus}
+                </div>
+              )}
+              
+              {/* Instructions */}
+              <div className="p-4 bg-gray-50 rounded-md">
+                <h4 className="font-medium text-gray-800 mb-2">JSON Format Example:</h4>
+                <pre className="text-xs text-gray-600 overflow-x-auto">
+        {`{
+          "name": "My Custom Plan",
+          "schedule": {
+            "monday": {
+              "name": "Push Day",
+              "exercises": [
+                {
+                  "name": "Bench Press",
+                  "sets": 3,
+                  "target_reps": "8-12",
+                  "type": "reps",
+                  "notes": ""
+                }
+              ]
+            }
+          }
+        }`}
+                </pre>
+              </div>
             </div>
 
-            {workoutPlan.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <Clock className="mx-auto text-gray-400 mb-4" size={48} />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No workouts planned this week
-                </h3>
-                <p className="text-gray-600">
-                  Add a plan to start building your weekly schedule!
-                </p>
+            {/* Current Plan Display - EXISTING CODE WITH ENHANCEMENTS */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                <Clock className="inline mr-2" size={20} />
+                Current Active Plan
+              </h3>
+              
+              {/* Plan Info */}
+              {workoutPlan.length > 0 && (
+                <div className="mb-4 p-4 bg-blue-50 rounded-md">
+                  <p className="text-sm font-medium text-blue-800">
+                    Plan Source: {todaysWorkout?.planSource === 'user' ? 'Custom Upload' : 'Default Plan'}
+                  </p>
+                  {todaysWorkout?.planName && (
+                    <p className="text-sm text-blue-700">
+                      Plan Name: {todaysWorkout.planName}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {loading && (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading weekly plan...</p>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {workoutPlan.map((entry, index) => (
+                  <details key={index} className="bg-white border border-gray-200 rounded-lg p-4">
+                    <summary className="cursor-pointer text-lg font-semibold text-gray-800 hover:text-blue-600">
+                      {entry.day.charAt(0).toUpperCase() + entry.day.slice(1)} - {entry.workout?.name || 'Unnamed Workout'}
+                    </summary>
+
+                    <div className="mt-4 space-y-2">
+                      {entry.workout?.exercises?.map((exercise, i) => (
+                        <div key={i} className="border border-gray-200 rounded p-3 bg-gray-50">
+                          <h4 className="font-medium text-gray-800">{exercise.name}</h4>
+                          <p className="text-sm text-gray-600">
+                            {exercise.type === 'time'
+                              ? `${exercise.sets} sets × ${exercise.target_time}`
+                              : `${exercise.sets} sets × ${exercise.target_reps} reps`}
+                          </p>
+                          {exercise.notes && (
+                            <p className="text-sm italic text-gray-500 mt-1">{exercise.notes}</p>
+                          )}
+                        </div>
+                      ))}
+                      {!entry.workout?.exercises?.length && (
+                        <p className="text-sm text-gray-500">No exercises planned.</p>
+                      )}
+                    </div>
+                  </details>
+                ))}
               </div>
-            )}
+
+              {workoutPlan.length === 0 && !loading && (
+                <div className="text-center py-12">
+                  <Clock className="mx-auto text-gray-400 mb-4" size={48} />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No workouts planned this week
+                  </h3>
+                  <p className="text-gray-600">
+                    Upload a custom workout plan above to get started!
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       
