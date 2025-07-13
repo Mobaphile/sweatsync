@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trophy } from 'lucide-react';
 
-const CompleteWorkoutButton = ({
+export const CompleteWorkoutButton = ({
   onComplete,
   loading,
   completed,
@@ -103,3 +103,4 @@ const CompleteWorkoutButton = ({
     </div>
   );
 };
+export default CompleteWorkoutButton;
