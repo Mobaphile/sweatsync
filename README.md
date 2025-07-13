@@ -93,7 +93,7 @@ sweatsync/
 - [x] **Upload JSON** - Add ability to upload a JSON workout
 - [x] **Enhanced history page** - Show date/time and make workouts clickable for detailed view
 - [x] **Detailed workout view** - Click any past workout to see all sets, weights, and notes
-- [ ] **Better error handling** - Clear messages when things go wrong
+- [x] **Better error handling** - Clear messages when things go wrong
 
 ### Phase 2: Production Deployment
 **Goal**: Get this thing online and learn some DevOps
