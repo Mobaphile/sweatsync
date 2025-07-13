@@ -386,6 +386,7 @@ const App = () => {
   const [loading, setLoading] = useState(false); // Global loading state
   const [deletingWorkoutId, setDeletingWorkoutId] = useState(null); // Track which workout is being deleted
   const [uploadStatus, setUploadStatus] = useState('');// Track status of upload.
+  const [showJsonGuide, setShowJsonGuide] = useState(false); // Track JSON guide visibility
 
 
   // useEffect hook - runs side effects when component mounts or dependencies change
@@ -903,16 +904,27 @@ const App = () => {
                 Upload Custom Workout Plan
               </h3>
               
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select JSON Workout Plan File
-                </label>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleWorkoutPlanUpload}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
+<div className="mb-4 flex items-center gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select JSON Workout Plan File
+                  </label>
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleWorkoutPlanUpload}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    style={{ colorScheme: 'light' }}
+                  />
+                </div>
+                
+                {/* JSON Formatting Guide Button */}
+                <button
+                  onClick={() => setShowJsonGuide(!showJsonGuide)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md border border-gray-300 text-sm font-medium transition-colors"
+                >
+                  JSON Formatting Guide
+                </button>
               </div>
               
               {/* Upload Status */}
@@ -926,29 +938,32 @@ const App = () => {
                 </div>
               )}
               
-              {/* Instructions */}
-              <div className="p-4 bg-gray-50 rounded-md">
-                <h4 className="font-medium text-gray-800 mb-2">JSON Format Example:</h4>
-                <pre className="text-xs text-gray-600 overflow-x-auto">
-        {`{
-          "name": "My Custom Plan",
-          "schedule": {
-            "monday": {
-              "name": "Push Day",
-              "exercises": [
-                {
-                  "name": "Bench Press",
-                  "sets": 3,
-                  "target_reps": "8-12",
-                  "type": "reps",
-                  "notes": ""
-                }
-              ]
-            }
-          }
-        }`}
-                </pre>
-              </div>
+              {/* Conditional Instructions - Only show when button is clicked */}
+              {showJsonGuide && (
+                <div className="p-4 bg-gray-50 rounded-md">
+                  <h4 className="font-medium text-gray-800 mb-2">JSON Format Example:</h4>
+                  <pre className="text-xs text-gray-600 overflow-x-auto">
+        {`
+{
+"name": "My Custom Plan",
+"schedule": {
+  "monday": {
+    "name": "Push Day",
+    "exercises": [
+      {
+        "name": "Bench Press",
+        "sets": 3,
+        "target_reps": "8-12",
+        "type": "reps",
+        "notes": ""
+      }
+    ]
+  }
+}
+}`}
+                  </pre>
+                </div>
+              )}
             </div>
 
             {/* Current Plan Display - EXISTING CODE WITH ENHANCEMENTS */}
