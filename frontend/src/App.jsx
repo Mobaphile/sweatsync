@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Import icons from lucide-react icon library
-import { User, Calendar, Trophy, Plus, LogOut, Dumbbell, Clock, Target, Droplet} from 'lucide-react';
+import { User, Calendar, Trophy, Plus, LogOut, Dumbbell, Clock, Target, Droplet, Trash2} from 'lucide-react';
 
 // ==============================================
 // API CONFIGURATION & SERVICE LAYER
@@ -106,6 +106,21 @@ const api = {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Failed to fetch history');
+    return data;
+  },
+
+  // DELETE WORKOUT - removes a workout by ID
+  deleteWorkout: async (workoutId) => {
+    const response = await fetch(`${API_BASE_URL}/workouts/delete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...api.getAuthHeaders(),
+      },
+      body: JSON.stringify({ workoutId }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to delete workout');
     return data;
   },
 };
@@ -346,6 +361,7 @@ const App = () => {
   const [workoutHistory, setWorkoutHistory] = useState([]); // Array of past workouts
   const [exerciseData, setExerciseData] = useState({}); // Current workout progress data
   const [loading, setLoading] = useState(false); // Global loading state
+  const [deletingWorkoutId, setDeletingWorkoutId] = useState(null); // Track which workout is being deleted
 
 
   // useEffect hook - runs side effects when component mounts or dependencies change
@@ -428,6 +444,39 @@ const loadWorkoutPlan = async () => {
       console.error('Failed to load history:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Function to delete a workout with confirmation
+  const deleteWorkout = async (workoutId, workoutName) => {
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${workoutName}"? This action cannot be undone.`
+    );
+    
+    if (!confirmed) {
+      return; // User cancelled, do nothing
+    }
+
+    try {
+      setDeletingWorkoutId(workoutId); // Show loading state for this specific workout
+      await api.deleteWorkout(workoutId);
+      
+      // Remove the deleted workout from the local state
+      // This updates the UI immediately without needing to reload from server
+      // TODO how does this work???
+      setWorkoutHistory(prevHistory => 
+        prevHistory.filter(workout => workout.id !== workoutId)
+      );
+      
+      // Optional: Show success message
+      alert('Workout deleted successfully!');
+      
+    } catch (error) {
+      console.error('Failed to delete workout:', error);
+      alert('Failed to delete workout: ' + error.message);
+    } finally {
+      setDeletingWorkoutId(null); // Hide loading state
     }
   };
 
@@ -694,8 +743,26 @@ const loadWorkoutPlan = async () => {
                       </h3>
                       <p className="text-gray-600">{workout.date}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">
+                    <div className="text-right relative">
+                      {/* Delete button positioned over the date */}
+                      <button
+                        onClick={() => deleteWorkout(
+                          workout.id, 
+                          workout.workout_data?.workoutName || 'Unknown Workout'
+                        )}          
+                        disabled={deletingWorkoutId === workout.id}
+                        className="absolute top-0 right-0 p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete workout"
+                      >
+                        {deletingWorkoutId === workout.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
+                      </button>
+                      
+                      {/* Exercise count - positioned below delete button */}
+                      <p className="text-sm text-gray-500 mt-6">
                         {workout.workout_data?.exercises?.length || 0} exercises
                       </p>
                     </div>
