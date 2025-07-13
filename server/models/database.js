@@ -39,10 +39,12 @@ class Database {
     const createWorkoutPlansTable = `
       CREATE TABLE IF NOT EXISTS workout_plans (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,  -- ADD THIS LINE
         name TEXT NOT NULL,
-        plan_data TEXT NOT NULL,
+        plan_data TEXT NOT NULL,    
         active BOOLEAN DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)  -- ADD THIS LINE
       )
     `;
 
@@ -157,6 +159,62 @@ class Database {
               workout_data: JSON.parse(row.workout_data)
             }));
             resolve(workouts);
+          }
+        }
+      );
+    });
+  }
+
+  // User Workout Plan methods
+  saveUserWorkoutPlan(userId, name, planData) {
+    return new Promise((resolve, reject) => {
+      // First, set all existing plans for this user to inactive
+      const deactivateStmt = this.db.prepare('UPDATE workout_plans SET active = 0 WHERE user_id = ?');
+      deactivateStmt.run(userId, (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        
+        // Now insert the new plan as active
+        const insertStmt = this.db.prepare(`
+          INSERT INTO workout_plans (user_id, name, plan_data, active) 
+          VALUES (?, ?, ?, 1)
+        `);
+        insertStmt.run(userId, name, JSON.stringify(planData), function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({ 
+              id: this.lastID, 
+              userId, 
+              name, 
+              planData,
+              active: true 
+            });
+          }
+        });
+        insertStmt.finalize();
+      });
+      deactivateStmt.finalize();
+    });
+  }
+
+  getUserWorkoutPlan(userId) {
+    return new Promise((resolve, reject) => {
+      this.db.get(
+        'SELECT * FROM workout_plans WHERE user_id = ? AND active = 1',
+        userId,
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else if (row) {
+            resolve({
+              ...row,
+              plan_data: JSON.parse(row.plan_data)
+            });
+          } else {
+            resolve(null); // No active plan found
           }
         }
       );

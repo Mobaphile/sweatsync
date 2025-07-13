@@ -20,29 +20,111 @@ router.get('/plan', authenticateToken, async (req, res) => {
   }
 });
 
+// Upload and save user workout plan
+router.post('/upload-plan', authenticateToken, async (req, res) => {
+  try {
+    const { name, planData } = req.body;
+    
+    // Validation: Check required fields
+    if (!name || !planData) {
+      return res.status(400).json({ 
+        error: 'Workout plan name and data are required' 
+      });
+    }
+    
+    // Validation: Check if planData has the expected structure
+    if (!planData.schedule || typeof planData.schedule !== 'object') {
+      return res.status(400).json({ 
+        error: 'Invalid workout plan format. Must include a schedule object.' 
+      });
+    }
+    
+    // Validation: Check if at least one day has exercises
+    const days = Object.keys(planData.schedule);
+    if (days.length === 0) {
+      return res.status(400).json({ 
+        error: 'Workout plan must include at least one day with exercises' 
+      });
+    }
+    
+    // Save the workout plan to database
+    const savedPlan = await database.saveUserWorkoutPlan(
+      req.user.id, 
+      name, 
+      planData
+    );
+    
+    res.json({
+      message: 'Workout plan uploaded successfully',
+      plan: {
+        id: savedPlan.id,
+        name: savedPlan.name,
+        active: savedPlan.active
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error uploading workout plan:', error);
+    
+    // Handle specific database errors
+    if (error.code === 'SQLITE_CONSTRAINT') {
+      return res.status(400).json({ 
+        error: 'Invalid workout plan data' 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to upload workout plan' 
+    });
+  }
+});
+
+// Get today's workout
 // Get today's workout
 router.get('/today', authenticateToken, async (req, res) => {
   try {
     const today = new Date();
     const dayName = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     
-    const planPath = path.join(__dirname, '../workout-plans/current-plan.json');
-    const planData = await fs.readFile(planPath, 'utf8');
-    const plan = JSON.parse(planData);
+    let plan = null;
+    let planSource = 'default';
+    
+    // First, try to get user's custom workout plan
+    try {
+      const userPlan = await database.getUserWorkoutPlan(req.user.id);
+      if (userPlan) {
+        plan = userPlan.plan_data;
+        planSource = 'user';
+      }
+    } catch (error) {
+      console.warn('Could not load user workout plan, falling back to default:', error);
+    }
+    
+    // If no user plan, fall back to default file-based plan
+    if (!plan) {
+      const planPath = path.join(__dirname, '../workout-plans/current-plan.json');
+      const planData = await fs.readFile(planPath, 'utf8');
+      plan = JSON.parse(planData);
+      planSource = 'default';
+    }
     
     const todaysWorkout = plan.schedule[dayName];
     
     if (!todaysWorkout) {
       return res.json({ 
         message: 'No workout scheduled for today',
-        date: today.toISOString().split('T')[0]
+        date: today.toISOString().split('T')[0],
+        planSource
       });
     }
     
     res.json({
       date: today.toISOString().split('T')[0],
-      workout: todaysWorkout
+      workout: todaysWorkout,
+      planSource, // Let frontend know if this is user's custom plan or default
+      planName: plan.name || 'Current Plan'
     });
+    
   } catch (error) {
     console.error('Error getting today\'s workout:', error);
     res.status(500).json({ error: 'Failed to get today\'s workout' });
