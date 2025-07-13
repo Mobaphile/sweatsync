@@ -9,11 +9,34 @@ const router = express.Router();
 // Get current workout plan
 router.get('/plan', authenticateToken, async (req, res) => {
   try {
-    const planPath = path.join(__dirname, '../workout-plans/current-plan.json');
-    const planData = await fs.readFile(planPath, 'utf8');
-    const plan = JSON.parse(planData);
+    let plan = null;
+    let planSource = 'default';
     
-    res.json({ plan });
+    // First, try to get user's custom workout plan
+    try {
+      const userPlan = await database.getUserWorkoutPlan(req.user.id);
+      if (userPlan) {
+        plan = userPlan.plan_data;
+        planSource = 'user';
+      }
+    } catch (error) {
+      console.warn('Could not load user workout plan, falling back to default:', error);
+    }
+    
+    // If no user plan, fall back to default file-based plan
+    if (!plan) {
+      const planPath = path.join(__dirname, '../workout-plans/current-plan.json');
+      const planData = await fs.readFile(planPath, 'utf8');
+      plan = JSON.parse(planData);
+      planSource = 'default';
+    }
+    
+    res.json({ 
+      plan,
+      planSource,
+      planName: plan.name || 'Current Plan'
+    });
+    
   } catch (error) {
     console.error('Error loading workout plan:', error);
     res.status(500).json({ error: 'Failed to load workout plan' });
