@@ -424,6 +424,7 @@ const App = () => {
   const [uploadStatus, setUploadStatus] = useState('');// Track status of upload.
   const [showJsonGuide, setShowJsonGuide] = useState(false); // Track JSON guide visibility
   const [showLlmInstruction, setShowLlmInstruction] = useState(false); // Track LLM instruction visibility
+  const [expandedWorkouts, setExpandedWorkouts] = useState(new Set()); // Set of currently expanded workouts
 
 
   // useEffect hook - runs side effects when component mounts or dependencies change
@@ -491,6 +492,20 @@ const App = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleWorkoutExpanded = (workoutId) => {
+    setExpandedWorkouts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(workoutId)) {
+        // If already expanded, collapse it
+        newSet.delete(workoutId);
+      } else {
+        // If collapsed, expand it
+        newSet.add(workoutId);
+      }
+      return newSet;
+    });
   };
 
 
@@ -866,53 +881,131 @@ const App = () => {
 
             {/* History list */}
             <div className="space-y-4">
-              {workoutHistory.map((workout, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {workout.workout_data?.workoutName || 'Unknown Workout'}
-                      </h3>
-                      <p className="text-gray-600">{formatDateTime(workout.date, workout.completed_at)}</p>
-                    </div>
-                    <div className="text-right relative">
-                      {/* Delete button positioned over the date */}
-                      <button
-                        onClick={() => deleteWorkout(
-                          workout.id, 
-                          workout.workout_data?.workoutName || 'Unknown Workout'
-                        )}          
-                        disabled={deletingWorkoutId === workout.id}
-                        className="absolute top-0 right-0 p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Delete workout"
-                      >
-                        {deletingWorkoutId === workout.id ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-                        ) : (
-                          <Trash2 size={16} />
-                        )}
-                      </button>
-                      
-                      {/* Exercise count - positioned below delete button */}
-                      <p className="text-sm text-gray-500 mt-6">
-                        {workout.workout_data?.exercises?.length || 0} exercises
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Exercise summary grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {workout.workout_data?.exercises?.map((exercise, exIndex) => (
-                      <div key={exIndex} className="bg-gray-50 rounded p-3">
-                        <h4 className="font-medium text-gray-800">{exercise.name}</h4>
-                        <p className="text-sm text-gray-600">
-                          {exercise.sets?.length || 0} sets completed
-                        </p>
+              {workoutHistory.map((workout, index) => {
+                const isExpanded = expandedWorkouts.has(workout.id);
+                const exercises = workout.workout_data?.exercises || [];
+                
+                return (
+                  <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+                    {/* Clickable header section */}
+                    <div 
+                      className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => toggleWorkoutExpanded(workout.id)}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            {/* Expand/collapse indicator */}
+                            <span className="text-gray-400 text-sm">
+                              {isExpanded ? '▼' : '▶'}
+                            </span>
+                            <h3 className="text-lg font-semibold text-gray-800">
+                              {workout.workout_data?.workoutName || 'Unknown Workout'}
+                            </h3>
+                          </div>
+                          <p className="text-gray-600">{formatDateTime(workout.date, workout.completed_at)}</p>
+                        </div>
+                        
+                        <div className="text-right relative">
+                          {/* Delete button - stop propagation so it doesn't trigger expand */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent triggering the expand/collapse
+                              deleteWorkout(
+                                workout.id, 
+                                workout.workout_data?.workoutName || 'Unknown Workout'
+                              );
+                            }}          
+                            disabled={deletingWorkoutId === workout.id}
+                            className="absolute top-0 right-0 p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Delete workout"
+                          >
+                            {deletingWorkoutId === workout.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                            ) : (
+                              <Trash2 size={16} />
+                            )}
+                          </button>
+                          
+                          {/* Exercise count */}
+                          <p className="text-sm text-gray-500 mt-6">
+                            {exercises.length} exercises
+                          </p>
+                        </div>
                       </div>
-                    ))}
+                      
+                      {/* Collapsed view - exercise summary grid (only show when NOT expanded) */}
+                      {!isExpanded && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {exercises.map((exercise, exIndex) => (
+                            <div key={exIndex} className="bg-gray-50 rounded p-3">
+                              <h4 className="font-medium text-gray-800">{exercise.name}</h4>
+                              <p className="text-sm text-gray-600">
+                                {exercise.sets?.length || 0} sets completed
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Expanded view - detailed exercise information */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-200 bg-gray-50">
+                        <div className="p-6">
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4">Workout Details</h4>
+                          
+                          {exercises.length === 0 ? (
+                            <p className="text-gray-500 italic">No exercises recorded for this workout.</p>
+                          ) : (
+                            <div className="space-y-6">
+                              {exercises.map((exercise, exIndex) => (
+                                <div key={exIndex} className="bg-white rounded-lg p-4 shadow-sm">
+                                  <h5 className="font-semibold text-gray-800 mb-3">{exercise.name}</h5>
+                                  
+                                  {/* Exercise notes */}
+                                  {exercise.notes && (
+                                    <div className="mb-3 p-3 bg-blue-50 rounded border-l-4 border-blue-200">
+                                      <p className="text-sm text-gray-700">
+                                        <span className="font-medium">Notes:</span> {exercise.notes}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Sets details */}
+                                  {exercise.sets && exercise.sets.length > 0 ? (
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-600 mb-2">Sets:</p>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                        {exercise.sets.map((set, setIndex) => (
+                                          <div key={setIndex} className="bg-gray-50 rounded px-3 py-2 text-sm">
+                                            <span className="font-medium">Set {setIndex + 1}:</span>
+                                            {set.reps && (
+                                              <span className="ml-1">{set.reps} reps</span>
+                                            )}
+                                            {set.weight && (
+                                              <span className="ml-1">@ {set.weight} lbs</span>
+                                            )}
+                                            {set.time && (
+                                              <span className="ml-1">{set.time}s</span>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <p className="text-gray-500 italic text-sm">No sets recorded for this exercise.</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Empty state for history */}
@@ -934,7 +1027,7 @@ const App = () => {
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-8">Workout Plan Management</h2>
 
-            {/* Upload Section - NEW */}
+            {/* Upload Section*/}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">
                 <Upload className="inline mr-2" size={20} />
