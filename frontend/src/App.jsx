@@ -387,6 +387,7 @@ const App = () => {
   const [deletingWorkoutId, setDeletingWorkoutId] = useState(null); // Track which workout is being deleted
   const [uploadStatus, setUploadStatus] = useState('');// Track status of upload.
   const [showJsonGuide, setShowJsonGuide] = useState(false); // Track JSON guide visibility
+  const [showLlmInstruction, setShowLlmInstruction] = useState(false); // Track LLM instruction visibility
 
 
   // useEffect hook - runs side effects when component mounts or dependencies change
@@ -941,27 +942,57 @@ const App = () => {
               {/* Conditional Instructions - Only show when button is clicked */}
               {showJsonGuide && (
                 <div className="p-4 bg-gray-50 rounded-md">
-                  <h4 className="font-medium text-gray-800 mb-2">JSON Format Example:</h4>
-                  <pre className="text-xs text-gray-600 overflow-x-auto">
-        {`
-{
-"name": "My Custom Plan",
-"schedule": {
-  "monday": {
-    "name": "Push Day",
-    "exercises": [
-      {
-        "name": "Bench Press",
-        "sets": 3,
-        "target_reps": "8-12",
-        "type": "reps",
-        "notes": ""
-      }
-    ]
+                  <h4 className="font-medium text-gray-800 mb-4">JSON Format Guide</h4>
+                  
+                  {/* Responsive layout: side-by-side on large screens, stacked on small */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    {/* JSON Example Section */}
+                    <div>
+                      <h5 className="font-medium text-gray-700 mb-2">Example Format:</h5>
+                      <pre className="text-xs text-gray-600 overflow-x-auto bg-white p-3 rounded border">
+        {`{
+  "name": "My Custom Plan",
+  "schedule": {
+    "monday": {
+      "name": "Push Day",
+      "exercises": [
+        {
+          "name": "Bench Press",
+          "sets": 3,
+          "target_reps": "8-12",
+          "type": "reps",
+          "notes": ""
+        }
+      ]
+    }
   }
-}
 }`}
-                  </pre>
+                      </pre>
+                    </div>
+
+                    {/* LLM Instruction Section */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-medium text-gray-700">LLM Prompt Instructions:</h5>
+                        <button
+                          onClick={() => setShowLlmInstruction(!showLlmInstruction)}
+                          className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded text-sm font-medium transition-colors"
+                        >
+                          {showLlmInstruction ? 'Hide' : 'Show'}
+                        </button>
+                      </div>
+                      
+                      {showLlmInstruction && (
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-xs text-gray-600 mb-2 font-medium">Copy this instruction to your AI:</p>
+                          <pre className="text-xs text-gray-600 whitespace-pre-wrap bg-blue-50 p-2 rounded border">
+{`OUTPUT INSTRUCTION: Format your response as a valid JSON object with this exact structure: \`{"name": "Plan Name", "schedule": {"monday": {"name": "Workout Name", "exercises": [{"name": "Exercise Name", "sets": number, "target_reps": "rep range or count", "type": "reps", "notes": "instructions"}, {"name": "Time Exercise", "sets": number, "target_time": "duration", "type": "time", "notes": "instructions"}]}, "tuesday": {...}, "wednesday": {...}, "thursday": {...}, "friday": {...}, "saturday": {...}, "sunday": {...}}}\`. RULES: (1) Include all 7 days (monday-sunday lowercase), (2) Each exercise MUST have "name", "sets", "type", and "notes" fields, (3) Use "target_reps" for type:"reps" exercises, "target_time" for type:"time" exercises, (4) Only use type:"reps" or type:"time", (5) Rest days should have light activities like stretching, (6) Output ONLY the JSON with no additional text.`}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
