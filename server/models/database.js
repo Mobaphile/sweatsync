@@ -1,15 +1,15 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const sqlite3 = require("sqlite3").verbose();
+const path = require("path");
 
-const dbPath = path.join(__dirname, '../workout_tracker.db');
+const dbPath = path.join(__dirname, "../workout_tracker.db");
 
 class Database {
   constructor() {
     this.db = new sqlite3.Database(dbPath, (err) => {
       if (err) {
-        console.error('Error opening database:', err.message);
+        console.error("Error opening database:", err.message);
       } else {
-        console.log('Connected to SQLite database.');
+        console.log("Connected to SQLite database.");
         this.initializeTables();
       }
     });
@@ -56,8 +56,10 @@ class Database {
   // User methods
   createUser(username, passwordHash) {
     return new Promise((resolve, reject) => {
-      const stmt = this.db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
-      stmt.run(username, passwordHash, function(err) {
+      const stmt = this.db.prepare(
+        "INSERT INTO users (username, password_hash) VALUES (?, ?)"
+      );
+      stmt.run(username, passwordHash, function (err) {
         if (err) {
           reject(err);
         } else {
@@ -70,33 +72,43 @@ class Database {
 
   getUserByUsername(username) {
     return new Promise((resolve, reject) => {
-      this.db.get('SELECT * FROM users WHERE username = ?', username, (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
+      this.db.get(
+        "SELECT * FROM users WHERE username = ?",
+        username,
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row);
+          }
         }
-      });
+      );
     });
   }
 
   getUserById(id) {
     return new Promise((resolve, reject) => {
-      this.db.get('SELECT id, username, created_at FROM users WHERE id = ?', id, (err, row) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(row);
+      this.db.get(
+        "SELECT id, username, created_at FROM users WHERE id = ?",
+        id,
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row);
+          }
         }
-      });
+      );
     });
   }
 
   // Workout methods
   saveWorkout(userId, date, workoutData) {
     return new Promise((resolve, reject) => {
-      const stmt = this.db.prepare('INSERT INTO workouts (user_id, date, workout_data) VALUES (?, ?, ?)');
-      stmt.run(userId, date, JSON.stringify(workoutData), function(err) {
+      const stmt = this.db.prepare(
+        "INSERT INTO workouts (user_id, date, workout_data) VALUES (?, ?, ?)"
+      );
+      stmt.run(userId, date, JSON.stringify(workoutData), function (err) {
         if (err) {
           reject(err);
         } else {
@@ -111,31 +123,31 @@ class Database {
     return new Promise((resolve, reject) => {
       // First, verify that the workout belongs to the user
       this.db.get(
-        'SELECT id FROM workouts WHERE id = ? AND user_id = ?',
+        "SELECT id FROM workouts WHERE id = ? AND user_id = ?",
         [workoutId, userId],
         (err, row) => {
           if (err) {
             reject(err);
             return;
           }
-          
+
           if (!row) {
-            reject(new Error('Workout not found or access denied'));
+            reject(new Error("Workout not found or access denied"));
             return;
           }
-          
+
           // If workout exists and belongs to user, delete it
           this.db.run(
-            'DELETE FROM workouts WHERE id = ? AND user_id = ?',
+            "DELETE FROM workouts WHERE id = ? AND user_id = ?",
             [workoutId, userId],
-            function(err) {
+            function (err) {
               if (err) {
                 reject(err);
               } else {
-                resolve({ 
-                  deleted: true, 
+                resolve({
+                  deleted: true,
                   workoutId: workoutId,
-                  changesCount: this.changes 
+                  changesCount: this.changes,
                 });
               }
             }
@@ -148,15 +160,15 @@ class Database {
   getWorkoutsByUser(userId, limit = 10) {
     return new Promise((resolve, reject) => {
       this.db.all(
-        'SELECT * FROM workouts WHERE user_id = ? ORDER BY date DESC LIMIT ?',
+        "SELECT * FROM workouts WHERE user_id = ? ORDER BY date DESC LIMIT ?",
         [userId, limit],
         (err, rows) => {
           if (err) {
             reject(err);
           } else {
-            const workouts = rows.map(row => ({
+            const workouts = rows.map((row) => ({
               ...row,
-              workout_data: JSON.parse(row.workout_data)
+              workout_data: JSON.parse(row.workout_data),
             }));
             resolve(workouts);
           }
@@ -169,28 +181,30 @@ class Database {
   saveUserWorkoutPlan(userId, name, planData) {
     return new Promise((resolve, reject) => {
       // First, set all existing plans for this user to inactive
-      const deactivateStmt = this.db.prepare('UPDATE workout_plans SET active = 0 WHERE user_id = ?');
+      const deactivateStmt = this.db.prepare(
+        "UPDATE workout_plans SET active = 0 WHERE user_id = ?"
+      );
       deactivateStmt.run(userId, (err) => {
         if (err) {
           reject(err);
           return;
         }
-        
+
         // Now insert the new plan as active
         const insertStmt = this.db.prepare(`
           INSERT INTO workout_plans (user_id, name, plan_data, active) 
           VALUES (?, ?, ?, 1)
         `);
-        insertStmt.run(userId, name, JSON.stringify(planData), function(err) {
+        insertStmt.run(userId, name, JSON.stringify(planData), function (err) {
           if (err) {
             reject(err);
           } else {
-            resolve({ 
-              id: this.lastID, 
-              userId, 
-              name, 
+            resolve({
+              id: this.lastID,
+              userId,
+              name,
               planData,
-              active: true 
+              active: true,
             });
           }
         });
@@ -203,7 +217,7 @@ class Database {
   getUserWorkoutPlan(userId) {
     return new Promise((resolve, reject) => {
       this.db.get(
-        'SELECT * FROM workout_plans WHERE user_id = ? AND active = 1',
+        "SELECT * FROM workout_plans WHERE user_id = ? AND active = 1",
         userId,
         (err, row) => {
           if (err) {
@@ -211,7 +225,7 @@ class Database {
           } else if (row) {
             resolve({
               ...row,
-              plan_data: JSON.parse(row.plan_data)
+              plan_data: JSON.parse(row.plan_data),
             });
           } else {
             resolve(null); // No active plan found
@@ -224,9 +238,9 @@ class Database {
   close() {
     this.db.close((err) => {
       if (err) {
-        console.error('Error closing database:', err.message);
+        console.error("Error closing database:", err.message);
       } else {
-        console.log('Database connection closed.');
+        console.log("Database connection closed.");
       }
     });
   }

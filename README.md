@@ -5,6 +5,7 @@ A personal workout tracking web app that actually focuses on what matters: consi
 ## 🎯 Vision
 
 SweatSync was born from a simple need: I wanted a straightforward way to track workouts without the bloat of commercial fitness apps. Something that:
+
 - Works seamlessly on my phone during workouts
 - Tracks progressive overload (the key to actual strength gains)
 - Handles both rep-based and time-based exercises
@@ -16,6 +17,7 @@ This isn't about social features or competing with strangers on the internet. It
 ## 🚀 Features
 
 ### Currently Working
+
 - ✅ User authentication (secure login for you and your partner)
 - ✅ Daily workout tracking with sets, reps, and weights
 - ✅ Basic workout history
@@ -23,6 +25,7 @@ This isn't about social features or competing with strangers on the internet. It
 - ✅ Exercise notes for form cues or personal reminders
 
 ### Coming Soon
+
 See my [roadmap](#-roadmap) below for what's next!
 
 ## 🛠️ Tech Stack
@@ -35,10 +38,12 @@ See my [roadmap](#-roadmap) below for what's next!
 ## 📦 Installation
 
 ### Prerequisites
+
 - Node.js 16+ installed
 - Basic knowledge of running commands in terminal
 
 ### Backend Setup
+
 ```bash
 # Clone the repo
 git clone https://github.com/yourusername/sweatsync.git
@@ -52,6 +57,7 @@ npm run dev
 ```
 
 ### Frontend Setup
+
 ```bash
 # In a new terminal, navigate to frontend
 cd frontend
@@ -64,10 +70,12 @@ npm run dev
 ```
 
 ### Access the App
+
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3000
 
 ## 📁 Project Structure
+
 ```
 sweatsync/
 ├── server.js                 # Express server entry point
@@ -86,6 +94,7 @@ sweatsync/
 ## 🗺️ Roadmap
 
 ### Phase 1: Core Improvements (Current Focus)
+
 **Goal**: Fix the annoying stuff and make daily use smoother
 
 - [x] **Fix time-based exercises** - Handle exercises measured in seconds (planks, wall sits, etc.)
@@ -96,6 +105,7 @@ sweatsync/
 - [x] **Better error handling** - Clear messages when things go wrong
 
 ### Phase 2: Production Deployment
+
 **Goal**: Get this thing online and learn some DevOps
 
 - [ ] **Domain setup** - Deploy to your personal domain
@@ -105,6 +115,7 @@ sweatsync/
 - [ ] **HTTPS setup** - Keep those workout stats secure
 
 ### Phase 3: Progress Tracking & Analytics
+
 **Goal**: See your gains and stay motivated
 
 - [ ] **Progressive overload tracking** - Visualize weight/rep increases per exercise
@@ -114,6 +125,7 @@ sweatsync/
 - [ ] **Simple dashboard** - At-a-glance view of your progress
 
 ### Phase 4: Goal Setting & Tracking
+
 **Goal**: Set targets and crush them
 
 - [ ] **Goal creation** - Set strength, consistency, or volume goals
@@ -122,6 +134,7 @@ sweatsync/
 - [ ] **Smart goal suggestions** - Based on your current performance
 
 ### Phase 5: Enhanced Workout Management
+
 **Goal**: Make workout planning more flexible
 
 - [ ] **Multiple workout plans** - Store and switch between different programs
@@ -130,6 +143,7 @@ sweatsync/
 - [ ] **Plan templates** - Start from common workout splits
 
 ### Phase 6: PWA & Polish
+
 **Goal**: Make it feel like a real app
 
 - [ ] **Progressive Web App** - Installable on phones
@@ -138,6 +152,7 @@ sweatsync/
 - [ ] **Dark mode** - Because who doesn't want dark mode?
 
 ### Future Ideas (Maybe Someday)
+
 - Export data (PDF reports, CSV dumps)
 - Exercise instruction videos/images
 - Rest timer with notifications
@@ -147,6 +162,7 @@ sweatsync/
 ## 🤝 Contributing
 
 This is a personal project, but if you want to use it and have ideas, feel free to:
+
 1. Fork it
 2. Create a feature branch
 3. Submit a PR with your improvements

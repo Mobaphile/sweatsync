@@ -16,19 +16,23 @@ class Logger {
       timestamp,
       level,
       message,
-      ...context
+      ...context,
     };
 
     return {
       formatted: `[${timestamp}] ${level.toUpperCase()}: ${message}`,
-      object: logObject
+      object: logObject,
     };
   }
 
   // DEBUG level - only shown in development
   debug(message, context = {}) {
     if (this.isDevelopment) {
-      const { formatted, object } = this.formatMessage('debug', message, context);
+      const { formatted, object } = this.formatMessage(
+        'debug',
+        message,
+        context
+      );
       console.log(formatted, object);
     }
   }
@@ -52,11 +56,15 @@ class Logger {
       ...(error && {
         errorMessage: error.message,
         errorStack: error.stack,
-        errorName: error.name
-      })
+        errorName: error.name,
+      }),
     };
 
-    const { formatted, object } = this.formatMessage('error', message, errorContext);
+    const { formatted, object } = this.formatMessage(
+      'error',
+      message,
+      errorContext
+    );
     console.error(formatted, object);
 
     // In production, you might want to send errors to a monitoring service
@@ -69,7 +77,7 @@ class Logger {
       method,
       url,
       data: data ? JSON.stringify(data) : null,
-      category: 'api'
+      category: 'api',
     });
   }
 
@@ -80,7 +88,7 @@ class Logger {
       url,
       status,
       category: 'api',
-      ...(data && { responseData: JSON.stringify(data) })
+      ...(data && { responseData: JSON.stringify(data) }),
     };
 
     if (error || status >= 400) {
@@ -94,7 +102,7 @@ class Logger {
   userAction(action, context = {}) {
     this.info(`User Action: ${action}`, {
       ...context,
-      category: 'user_action'
+      category: 'user_action',
     });
   }
 
