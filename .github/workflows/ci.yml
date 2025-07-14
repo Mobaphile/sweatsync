@@ -77,13 +77,25 @@ jobs:
           SERVER_PID=$!
 
           # Wait for server and database initialization
-          sleep 5
+          sleep 10
 
           # Test database file creation
-          if [ -f "workout_tracker.db" ]; then
-            echo "✅ Database file created successfully"
+          # Database is created at server/workout_tracker.db based on the path in database.js
+          echo "Debugging: Looking for database file..."
+          echo "Current directory contents:"
+          ls -la
+          echo ""
+          echo "Server directory contents:"
+          ls -la server/ 2>/dev/null || echo "Server directory not found"
+          echo ""
+          echo "Looking for any .db files anywhere:"
+          find . -name "*.db" 2>/dev/null || echo "No .db files found"
+          echo ""
+
+          if [ -f "server/workout_tracker.db" ]; then
+            echo "✅ Database file created successfully at server/workout_tracker.db"
           else
-            echo "❌ Database file not created"
+            echo "❌ Database file not created at expected location server/workout_tracker.db"
             exit 1
           fi
 
