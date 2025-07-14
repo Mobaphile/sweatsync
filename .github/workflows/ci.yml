@@ -4,9 +4,9 @@ name: SweatSync CI
 # When should this workflow run?
 on:
   push:
-    branches: [main, develop] # Run on pushes to main or develop
+    branches: [master, develop] # Run on pushes to master or develop
   pull_request:
-    branches: [main] # Run on PRs to main
+    branches: [master] # Run on PRs to master
 
 jobs:
   test-backend:
