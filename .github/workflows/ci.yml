@@ -49,9 +49,13 @@ jobs:
           curl -f http://localhost:3000/api/health || exit 1
 
           echo "Testing auth endpoints exist..."
-          # Should return 400 (bad request) not 404 (not found) for POST with no body
-          curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3000/api/auth/register | grep -E "^(400)$" || exit 1
-          curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3000/api/auth/login | grep -E "^(400)$" || exit 1
+          # Send POST with proper Content-Type but empty JSON to get 400 (validation error)
+          curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3000/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{}' | grep -E "^(400)$" || exit 1
+          curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3000/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{}' | grep -E "^(400)$" || exit 1
 
           echo "Testing workout endpoints exist..."
           # Should return 401 (unauthorized) not 404 (not found) 
