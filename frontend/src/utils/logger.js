@@ -6,7 +6,8 @@
 
 class Logger {
   constructor() {
-    this.isDevelopment = process.env.NODE_ENV === 'development';
+    // Vite automatically provides import.meta.env for environment variables
+    this.isDevelopment = import.meta.env.DEV;
   }
 
   // Format log message with timestamp and context
@@ -123,6 +124,7 @@ class Logger {
   sendToErrorService(logObject) {
     // Placeholder for production error tracking
     // Example: Sentry.captureMessage(logObject.message, logObject);
+    console.log('Would send to error service:', logObject);
   }
 }
 
