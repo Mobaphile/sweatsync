@@ -1,56 +1,165 @@
-# .github/workflows/ci.yml
 name: SweatSync CI
 
-# When should this workflow run?
 on:
   push:
-    branches: [master, develop] # Run on pushes to master or develop
+    branches: [main, master, develop]
   pull_request:
-    branches: [master] # Run on PRs to master
+    branches: [main, master]
 
 jobs:
   test-backend:
-    name: Test Backend
+    name: Backend Tests
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Get the code from GitHub
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: "npm"
 
-      # Step 3: Install backend dependencies
       - name: Install backend dependencies
         run: npm install
 
-      # Step 4: Check if backend starts (basic smoke test)
-      - name: Test backend startup
+      # ========================================
+      # PHASE 1: API ENDPOINT TESTING
+      # ========================================
+
+      - name: Test API endpoints
         run: |
           # Start server in background
           npm start &
-          # Give it time to start
+          SERVER_PID=$!
+
+          # Wait for server to be ready
+          echo "Waiting for server to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/api/health > /dev/null; then
+              echo "Server is ready!"
+              break
+            fi
+            sleep 1
+          done
+
+          # Test critical endpoints
+          echo "Testing health endpoint..."
+          curl -f http://localhost:3000/api/health || exit 1
+
+          echo "Testing auth endpoints exist..."
+          # Should return 400 (bad request) not 404 (not found)
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/auth/register | grep -E "^(400|405)$" || exit 1
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/auth/login | grep -E "^(400|405)$" || exit 1
+
+          echo "Testing workout endpoints exist..."
+          # Should return 401 (unauthorized) not 404 (not found) 
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/workouts/plan | grep -E "^(401|403)$" || exit 1
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/workouts/today | grep -E "^(401|403)$" || exit 1
+
+          # Clean up
+          kill $SERVER_PID || true
+          echo "✅ All API endpoints responding correctly!"
+
+      # ========================================
+      # PHASE 2: DATABASE TESTING
+      # ========================================
+
+      - name: Test database operations
+        run: |
+          # Start server to initialize database
+          npm start &
+          SERVER_PID=$!
+
+          # Wait for server and database initialization
           sleep 5
-          # Check if it's responding using the health endpoint
-          curl -f http://localhost:3000/api/health
-          # Kill the background process
-          pkill -f "node server.js" || true
+
+          # Test database file creation
+          if [ -f "workout_tracker.db" ]; then
+            echo "✅ Database file created successfully"
+          else
+            echo "❌ Database file not created"
+            exit 1
+          fi
+
+          # Test user registration endpoint
+          echo "Testing user registration..."
+          REGISTER_RESPONSE=$(curl -s -X POST http://localhost:3000/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"username":"testuser","password":"testpass123"}' \
+            -w "%{http_code}")
+
+          if echo "$REGISTER_RESPONSE" | grep -q "201"; then
+            echo "✅ User registration working"
+          else
+            echo "❌ User registration failed"
+            echo "Response: $REGISTER_RESPONSE"
+            kill $SERVER_PID || true
+            exit 1
+          fi
+
+          kill $SERVER_PID || true
+          echo "✅ Database operations working!"
+
+      # ========================================
+      # PHASE 3: WORKOUT PLAN TESTING
+      # ========================================
+
+      - name: Test workout plan loading
+        run: |
+          # Check if workout plan file exists
+          if [ ! -f "workout-plans/current-plan.json" ]; then
+            echo "❌ Workout plan file missing"
+            exit 1
+          fi
+
+          # Validate JSON syntax
+          if ! python3 -m json.tool workout-plans/current-plan.json > /dev/null; then
+            echo "❌ Workout plan JSON is invalid"
+            exit 1
+          fi
+
+          echo "✅ Workout plan file is valid JSON"
+
+          # Test plan structure
+          npm start &
+          SERVER_PID=$!
+          sleep 5
+
+          # Create a test user and get auth token
+          REGISTER_RESPONSE=$(curl -s -X POST http://localhost:3000/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"username":"plantest","password":"testpass123"}')
+
+          TOKEN=$(echo "$REGISTER_RESPONSE" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+
+          if [ -n "$TOKEN" ]; then
+            # Test workout plan endpoint
+            PLAN_RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" \
+              http://localhost:3000/api/workouts/plan)
+            
+            if echo "$PLAN_RESPONSE" | grep -q "schedule"; then
+              echo "✅ Workout plan endpoint working"
+            else
+              echo "❌ Workout plan endpoint failed"
+              echo "Response: $PLAN_RESPONSE"
+              kill $SERVER_PID || true
+              exit 1
+            fi
+          fi
+
+          kill $SERVER_PID || true
+          echo "✅ Workout plan loading working!"
 
   test-frontend:
-    name: Test Frontend
+    name: Frontend Tests
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Get the code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -58,17 +167,113 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      # Step 3: Install frontend dependencies
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: npm install
 
-      # Step 4: Build frontend
+      # ========================================
+      # FRONTEND BUILD & LINT TESTING
+      # ========================================
+
+      - name: Lint frontend code
+        working-directory: ./frontend
+        run: npm run lint
+
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
 
-      # Step 5: Run frontend linting
-      - name: Lint frontend code
+      - name: Check build output
         working-directory: ./frontend
-        run: npm run lint
+        run: |
+          if [ -d "dist" ]; then
+            echo "✅ Frontend built successfully"
+            echo "Build contents:"
+            ls -la dist/
+          else
+            echo "❌ Frontend build failed - no dist directory"
+            exit 1
+          fi
+
+      # ========================================
+      # FRONTEND ASSET VALIDATION
+      # ========================================
+
+      - name: Validate build assets
+        working-directory: ./frontend/dist
+        run: |
+          # Check essential files exist
+          if [ ! -f "index.html" ]; then
+            echo "❌ index.html missing from build"
+            exit 1
+          fi
+
+          # Check for JS and CSS files
+          if ! ls *.js 1> /dev/null 2>&1; then
+            echo "❌ No JavaScript files in build"
+            exit 1
+          fi
+
+          if ! ls *.css 1> /dev/null 2>&1; then
+            echo "❌ No CSS files in build"
+            exit 1
+          fi
+
+          echo "✅ All essential build assets present"
+
+  # ========================================
+  # INTEGRATION TESTING
+  # ========================================
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          npm install
+          cd frontend && npm install
+
+      - name: Build frontend for integration
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Test full stack integration
+        run: |
+          # Copy frontend build to where server expects it
+          mkdir -p public
+
+          # Start server in production mode
+          NODE_ENV=production npm start &
+          SERVER_PID=$!
+
+          # Wait for server
+          sleep 5
+
+          # Test that server serves frontend
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
+
+          if [ "$RESPONSE" = "200" ]; then
+            echo "✅ Full stack integration working"
+          else
+            echo "❌ Full stack integration failed (HTTP $RESPONSE)"
+            kill $SERVER_PID || true
+            exit 1
+          fi
+
+          # Test API still works in production mode
+          curl -f http://localhost:3000/api/health || exit 1
+
+          kill $SERVER_PID || true
+          echo "✅ Production mode integration successful!"
