@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# SweatSync Production Deployment Script
+# Usage: ./deploy.sh
+
+set -e  # Exit on any error
+
+echo "🚀 Starting SweatSync deployment..."
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Configuration
+APP_NAME="sweatsync"
+APP_DIR="/var/www/sweatsync"
+NODE_ENV="production"
+PORT="3001"  # Different from dev port
+
+echo -e "${YELLOW}📦 Installing backend dependencies...${NC}"
+npm install --production
+
+echo -e "${YELLOW}🔧 Building frontend...${NC}"
+cd frontend
+npm install
+npm run build
+cd ..
+
+echo -e "${YELLOW}📋 Copying files to production directory...${NC}"
+sudo mkdir -p $APP_DIR
+sudo cp -r . $APP_DIR/
+sudo chown -R $USER:$USER $APP_DIR
+
+echo -e "${YELLOW}🔒 Setting up environment...${NC}"
+# Create production environment file
+sudo tee $APP_DIR/.env > /dev/null <<EOF
+NODE_ENV=production
+PORT=$PORT
+JWT_SECRET=$(openssl rand -base64 32)
+DB_PATH=$APP_DIR/workout_tracker.db
+EOF
+
+echo -e "${YELLOW}⚙️ Setting up PM2 process...${NC}"
+# Install PM2 globally if not already installed
+if ! command -v pm2 &> /dev/null; then
+    sudo npm install -g pm2
+fi
+
+# Create PM2 ecosystem file
+sudo tee $APP_DIR/ecosystem.config.js > /dev/null <<EOF
+module.exports = {
+  apps: [{
+    name: '$APP_NAME',
+    script: 'server.js',
+    cwd: '$APP_DIR',
+    instances: 1,
+    exec_mode: 'fork',
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '1G',
+    env: {
+      NODE_ENV: 'production',
+      PORT: $PORT
+    }
+  }]
+};
+EOF
+
+# Stop existing process if running
+pm2 stop $APP_NAME 2>/dev/null || true
+pm2 delete $APP_NAME 2>/dev/null || true
+
+# Start the application
+cd $APP_DIR
+pm2 start ecosystem.config.js
+pm2 save
+
+echo -e "${GREEN}✅ Application deployed and running on port $PORT${NC}"
+echo -e "${GREEN}📊 Check status with: pm2 status${NC}"
+echo -e "${GREEN}📝 View logs with: pm2 logs $APP_NAME${NC}"
+echo -e "${GREEN}🎉 Deployment complete!${NC}"

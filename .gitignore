@@ -60,3 +60,21 @@ temp/
 .cache/
 .parcel-cache/
 .eslintcache
+
+# Deployment files
+deploy.sh
+ecosystem.config.js
+
+# Production build files (frontend builds are copied during deployment)
+/var/www/
+frontend/dist/
+
+# PM2 logs and process files
+.pm2/
+pm2.log
+*.pid
+
+# SSL certificates (if stored locally)
+*.pem
+*.key
+*.crt

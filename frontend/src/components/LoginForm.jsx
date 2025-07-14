@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dumbbell } from 'lucide-react';
+import { Droplet } from 'lucide-react';
 import api from '../api/index.js';
 import logger from '../utils/logger.js';
 import errorHandler, { validators, errorUtils } from '../utils/errorHandler.js';
@@ -115,7 +115,7 @@ const LoginForm = ({ onLogin, isLogin, setIsLogin }) => {
         {/* Header */}
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-            <Dumbbell className="h-6 w-6 text-blue-600" />
+            <Droplet className="h-6 w-6 text-blue-600" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             {isLogin ? 'Sign in to your account' : 'Create your account'}
