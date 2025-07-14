@@ -253,6 +253,7 @@ jobs:
         run: |
           # Copy frontend build to where server expects it
           mkdir -p public
+          cp -r frontend/dist/* public/
 
           # Start server in production mode
           NODE_ENV=production npm start &
