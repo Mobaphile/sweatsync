@@ -49,9 +49,9 @@ jobs:
           curl -f http://localhost:3000/api/health || exit 1
 
           echo "Testing auth endpoints exist..."
-          # Should return 400 (bad request) not 404 (not found)
-          curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/auth/register | grep -E "^(400|405)$" || exit 1
-          curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/auth/login | grep -E "^(400|405)$" || exit 1
+          # Should return 400 (bad request) not 404 (not found) for POST with no body
+          curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3000/api/auth/register | grep -E "^(400)$" || exit 1
+          curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3000/api/auth/login | grep -E "^(400)$" || exit 1
 
           echo "Testing workout endpoints exist..."
           # Should return 401 (unauthorized) not 404 (not found) 
@@ -208,14 +208,14 @@ jobs:
             exit 1
           fi
 
-          # Check for JS and CSS files
-          if ! ls *.js 1> /dev/null 2>&1; then
-            echo "❌ No JavaScript files in build"
+          # Check for JS and CSS files in assets directory (Vite puts them there with hashes)
+          if ! ls assets/*.js 1> /dev/null 2>&1; then
+            echo "❌ No JavaScript files in build assets"
             exit 1
           fi
 
-          if ! ls *.css 1> /dev/null 2>&1; then
-            echo "❌ No CSS files in build"
+          if ! ls assets/*.css 1> /dev/null 2>&1; then
+            echo "❌ No CSS files in build assets"
             exit 1
           fi
 
