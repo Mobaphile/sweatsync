@@ -1,4 +1,4 @@
-name: SweatSync CI
+name: SweatSync CI/CD
 
 on:
   push:
@@ -125,13 +125,13 @@ jobs:
       - name: Test workout plan loading
         run: |
           # Check if workout plan file exists
-          if [ ! -f "server/workout-plans/current-plan.json" ]; then
+          if [ ! -f "workout-plans/current-plan.json" ]; then
             echo "❌ Workout plan file missing"
             exit 1
           fi
 
           # Validate JSON syntax
-          if ! python3 -m json.tool server/workout-plans/current-plan.json > /dev/null; then
+          if ! python3 -m json.tool workout-plans/current-plan.json > /dev/null; then
             echo "❌ Workout plan JSON is invalid"
             exit 1
           fi
@@ -294,3 +294,60 @@ jobs:
 
           kill $SERVER_PID || true
           echo "✅ Production mode integration successful!"
+
+  # ========================================
+  # 🚀 CONTINUOUS DEPLOYMENT
+  # ========================================
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend, integration-test]
+    # Only deploy on pushes to main branch (not pull requests)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 🚀 Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            echo "🎯 Starting deployment on $(hostname)..."
+
+            # Navigate to your project directory
+            cd ~/sweatsync
+
+            # Pull latest changes
+            echo "📥 Pulling latest changes..."
+            git pull origin main
+
+            # Make deploy script executable (just in case)
+            chmod +x deploy.sh
+
+            # Run your existing deployment script
+            echo "🚀 Running deployment script..."
+            ./deploy.sh
+
+            # Verify deployment worked
+            echo "✅ Checking if application is running..."
+            pm2 status sweatsync
+
+            echo "🎉 Deployment complete!"
+            echo "🌐 Application should be available at your domain"
+
+      - name: 📧 Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+            echo "🌐 SweatSync is now live with the latest changes"
+            echo "📊 Check status: pm2 status"
+            echo "📝 View logs: pm2 logs sweatsync"
+          else
+            echo "❌ Deployment failed!"
+            echo "🔍 Check the deployment logs above for details"
+            echo "🔄 Previous version should still be running"
+          fi
