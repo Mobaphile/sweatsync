@@ -125,13 +125,13 @@ jobs:
       - name: Test workout plan loading
         run: |
           # Check if workout plan file exists
-          if [ ! -f "workout-plans/current-plan.json" ]; then
+          if [ ! -f "server/workout-plans/current-plan.json" ]; then
             echo "❌ Workout plan file missing"
             exit 1
           fi
 
           # Validate JSON syntax
-          if ! python3 -m json.tool workout-plans/current-plan.json > /dev/null; then
+          if ! python3 -m json.tool server/workout-plans/current-plan.json > /dev/null; then
             echo "❌ Workout plan JSON is invalid"
             exit 1
           fi
