@@ -1,3 +1,6 @@
+// Load environment variables from .env file
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -5,12 +8,45 @@ const authRoutes = require("./server/routes/auth");
 const workoutRoutes = require("./server/routes/workouts");
 
 const app = express();
+
+// Environment configuration with fallbacks
 const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || "development";
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
+  : ["http://localhost:5173", "http://localhost:3000"];
+
+// Validate required environment variables
+if (!process.env.JWT_SECRET) {
+  console.error("ERROR: JWT_SECRET environment variable is required");
+  process.exit(1);
+}
+
+// CORS configuration based on environment
+const corsOptions = {
+  origin:
+    NODE_ENV === "production"
+      ? ALLOWED_ORIGINS // Restrict origins in production
+      : true, // Allow all origins in development
+  credentials: true,
+};
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+// Log environment info (only in development)
+if (NODE_ENV === "development") {
+  console.log(`🌍 Environment: ${NODE_ENV}`);
+  console.log(
+    `🔒 JWT Secret: ${process.env.JWT_SECRET ? "Set ✓" : "Missing ✗"}`
+  );
+  console.log(`🌐 CORS Origins:`, ALLOWED_ORIGINS);
+  console.log(
+    `💾 Database Path: ${process.env.DB_PATH || "./workout_tracker.db"}`
+  );
+}
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -18,11 +54,16 @@ app.use("/api/workouts", workoutRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  res.json({ status: "OK", timestamp: new Date().toISOString() });
+  res.json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    environment: NODE_ENV,
+    version: "1.0.0",
+  });
 });
 
 // Production serving - serve React app
-if (process.env.NODE_ENV === "production") {
+if (NODE_ENV === "production") {
   // Serve static files from React build
   app.use(express.static(path.join(__dirname, "frontend/dist")));
 
@@ -62,5 +103,8 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
 });
+
+module.exports = app;

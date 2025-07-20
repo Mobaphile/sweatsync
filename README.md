@@ -112,7 +112,7 @@ sweatsync/
 - [x] **Basic CI/CD pipeline** - Auto-deploy when pushing to main
 - [ ] **Environment configuration** - Separate dev/prod settings
 - [ ] **Database backups** - Don't lose your gains!
-- [ ] **HTTPS setup** - Keep those workout stats secure
+- [x] **HTTPS setup** - Keep those workout stats secure
 
 ### Phase 3: Progress Tracking & Analytics
 
