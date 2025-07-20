@@ -108,8 +108,8 @@ sweatsync/
 
 **Goal**: Get this thing online and learn some DevOps
 
-- [ ] **Domain setup** - Deploy to your personal domain
-- [ ] **Basic CI/CD pipeline** - Auto-deploy when pushing to main
+- [x] **Domain setup** - Deploy to your personal domain
+- [x] **Basic CI/CD pipeline** - Auto-deploy when pushing to main
 - [ ] **Environment configuration** - Separate dev/prod settings
 - [ ] **Database backups** - Don't lose your gains!
 - [ ] **HTTPS setup** - Keep those workout stats secure
